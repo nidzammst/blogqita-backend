@@ -1,0 +1,19 @@
+{
+  "name": "blogqita",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/nidzammst/blogqita-backend.git"
+  },
+  "author": "Ahmad Nidzam Musthafa",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/nidzammst/blogqita-backend/issues"
+  },
+  "homepage": "https://github.com/nidzammst/blogqita-backend#readme"
+}
