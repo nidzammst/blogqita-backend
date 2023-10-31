@@ -1,8 +1,12 @@
 const express = require('express')
 const router = express.Router()
 
-router.get('/', (req, res) => {
-	res.json({msg: "from respond route"})
-})
+// const {
+// 	likeHandler
+// } = require('../controller/respondCtrl')
+
+// const { authMiddleware } = require('../middlewares/authMiddleware')
+
+// router.get('/', authMiddleware, likeHandler)
 
 module.exports = router

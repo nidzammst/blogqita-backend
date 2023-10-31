@@ -9,35 +9,41 @@ var postSchema = new mongoose.Schema({
 		type: String,
 		required: true
 	},
-	content: {
-		type: String,
-		required: true
+	article: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'Article'
 	},
 	cover: {
 		type: String,
 		required: true,
 		default: 'https://cdn.icon-icons.com/icons2/2574/PNG/512/profile_picture_user_icon_153847.png'
 	},
-	viewsCount: Number,
+	viewsCount: {
+		type: Number,
+		default: 0
+	},
 	tags: [String],
-	category: [
-		{
-			type: String,
-			enum: ["Sport", "News", "Religy", "Travel", "Film", "Music"]
-		}
-	],
+	category: String,
 	author: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'User'
 	},
 	likes: [
 		{
-			type: mongoose.Schema.Types.ObjectId, ref: 'User'
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'User'
 		}
 	],
 	dislikes: [
 		{
-			type: mongoose.Schema.Types.ObjectId, ref: 'User'
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'User'
+		}
+	],
+	respond: [
+		{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Respond'
 		}
 	]
 }, { timestamps: true })
