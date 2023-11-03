@@ -14,16 +14,25 @@ var postSchema = new mongoose.Schema({
 		ref: 'Article'
 	},
 	cover: {
-		type: String,
+		type: Object,
 		required: true,
-		default: 'https://cdn.icon-icons.com/icons2/2574/PNG/512/profile_picture_user_icon_153847.png'
+		default: {
+			url: 'https://res.cloudinary.com/dwvsytxrl/image/upload/v1698884305/szyfxegqu6rvnb4nur4e.jpg',
+			asset_id: '791683e456719b212a4e03c3616d47e9',
+			public_id: 'szyfxegqu6rvnb4nur4e'
+		}
 	},
 	viewsCount: {
 		type: Number,
 		default: 0
 	},
 	tags: [String],
-	category: String,
+	category: [
+	{
+		type: String,
+		enum: ["Travel", "Islam", "Film", "Music"]
+	}
+	],
 	author: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'User'

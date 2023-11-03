@@ -3,6 +3,8 @@ const asyncHandler = require('express-async-handler')
 const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
 const uniqid = require('uniqid')
+const fs = require('fs')
+const { cloudinaryUploadImg, cloudinaryDeleteImg } = require('../utils/cloudinary')
 const validateMongodbId = require('../utils/validateMongodbId')
 const generatedToken = require('../config/jwtToken')
 const generatedRefreshToken = require('../config/refreshToken')
@@ -79,11 +81,43 @@ const deleteUser = asyncHandler(async (req, res) => {
 
 const updateUser = asyncHandler(async (req, res) => {
 	const { _id } = req.user
-	console.log(validateMongodbId)
 	validateMongodbId(_id)
 	try {
 		const updatedUser = await User.findByIdAndUpdate(_id, req.body)
 		res.json(updatedUser)
+	}
+	catch (error) {
+		throw new Error (error)
+	}
+})
+
+const uploadImages = asyncHandler(async (req, res) => {
+	const { id } = req.user
+	validateMongodbId(id)
+	try {
+		const user = await User.findById(id)
+		const originalProfilePhotoUrl = 'https://res.cloudinary.com/dwvsytxrl/image/upload/v1698884929/q3aejadv0clthv2wu7hy.png'
+
+		const isPhotoChanged = user.profilePhoto.url !== originalProfilePhotoUrl
+		const uploader = (path) => cloudinaryUploadImg(path, 'image')
+		const destroyer = (path) => cloudinaryDeleteImg(path, 'image')
+		const { path } = req.file
+		const newPath = await uploader(path)
+		fs.unlinkSync(path)
+		if(!isPhotoChanged) {
+			const findUser = await User.findByIdAndUpdate(id, {
+				profilePhoto: newPath
+			}, { new: true })
+			res.json(findUser)
+		} else {
+			const findUser = await User.findById(id)
+			const oldImgUrl = findUser.profilePhoto.public_id
+			destroyer(oldImgUrl)
+			const updateProfilePhoto = await User.findByIdAndUpdate(id, {
+				profilePhoto: newPath
+			}, { new: true })
+			res.json(updateProfilePhoto)
+		}
 	}
 	catch (error) {
 		throw new Error (error)
@@ -226,6 +260,35 @@ const addAuthor = asyncHandler(async (req, res) => {
 	}
 })
 
+const followUnfollow = asyncHandler(async (req, res) => {
+	const { id } = req.params
+	const { _id } = req.user
+	validateMongodbId(id)
+	validateMongodbId(_id)
+	try {
+		const follower = await User.findById(_id)
+		const toFollow = await User.findById(id)
+		const alreadyFollowed = toFollow?.followers.find((userId) => userId.toString() === _id.toString())
+		isFollowerToFollow = follower._id.toString() === toFollow._id.toString()
+		console.log(isFollowerToFollow)
+		if(isFollowerToFollow) throw new Error ("Can't Follow Your Self")
+		if(alreadyFollowed) {
+			await toFollow.updateOne({
+				$pull: { followers: _id }
+			}, { new: true })
+			res.json(toFollow)
+		} else {
+			await toFollow.updateOne({
+				$push: { followers: _id }
+			}, { new: true })
+			res.json(toFollow)
+		}
+	}
+	catch (error) {
+		throw new Error (error)
+	}
+})
+
 module.exports = {
 	createUser,
 	loginUser,
@@ -233,6 +296,7 @@ module.exports = {
 	getAllUser,
 	deleteUser,
 	updateUser,
+	uploadImages,
 	handleRefeshToken,
 	logout,
 	blockUser,
@@ -240,5 +304,6 @@ module.exports = {
 	updatePassword,
 	forgotPasswordToken,
 	resetPassword,
-	addAuthor
+	addAuthor,
+	followUnfollow
 }

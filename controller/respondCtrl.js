@@ -170,6 +170,30 @@ const getaComment = asyncHandler(async (req, res) => {
 	}
 })
 
+const updateComment = asyncHandler(async (req, res) => {
+	const { _id } = req.user
+	const { id } = req.params
+	validateMongodbId(_id)
+	validateMongodbId(id)
+	const { commentText } = req.body
+	try {
+		const comment = await Respond.findById(id)
+		const isCommenter = comment?.commenter.toString() === _id.toString()
+		if(!isCommenter) {
+			throw new Error ("This is not your comment")
+		} else {
+			const updatedComment = await Respond.findByIdAndUpdate(id, {
+				commentText: commentText
+			}, { new: true })
+			console.log("OK")
+			res.json(updatedComment)
+		}
+	}
+	catch (error) {
+		throw new Error (error)
+	}
+})
+
 const deleteComment = asyncHandler(async (req, res) => {
 	const { id } = req.params
 	const { _id } = req.user
@@ -291,6 +315,7 @@ module.exports = {
 	replyComment,
 	getComments,
 	getaComment,
+	updateComment,
 	deleteComment,
 	likeComment,
 	dislikeComment

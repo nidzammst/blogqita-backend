@@ -8,7 +8,6 @@ const PORT = process.env.PORT || 4000
 
 const authRouter = require('./routes/authRoute')
 const postRouter = require('./routes/postRoute')
-const respondRouter = require('./routes/respondRoute')
 const { errorHandler, notFound } = require('./middlewares/errorHandler')
 const dbConnect = require('./config/dbConnect')
 dbConnect()
@@ -19,7 +18,6 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use('/api/user', authRouter)
 app.use('/api/post', postRouter)
-app.use('/api/respond', respondRouter)
 app.use(notFound)
 app.use(errorHandler)
 

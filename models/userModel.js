@@ -40,10 +40,14 @@ var userSchema = new mongoose.Schema({
 		type: Boolean,
 		default: false
 	},
-	image: {
-		type: String,
+	profilePhoto: {
+		type: Object,
 		required: true,
-		default: 'https://cdn.icon-icons.com/icons2/2574/PNG/512/profile_picture_user_icon_153847.png'
+		default: {
+			url: "https://res.cloudinary.com/dwvsytxrl/image/upload/v1698884929/q3aejadv0clthv2wu7hy.png",
+			asset_id: "65595bc9b8f2b94dfa441f983d314572",
+			public_id: "q3aejadv0clthv2wu7hy"
+		}
 	},
 	bio: {
 		type: String,

@@ -1,11 +1,70 @@
 const Post = require('../models/postModel')
+const User = require('../models/userModel')
+const fs = require('fs')
 const asyncHandler = require('express-async-handler')
 const validateMongodbId = require('../utils/validateMongodbId')
+const { cloudinaryUploadImg, cloudinaryDeleteImg } = require('../utils/cloudinary')
 
 const createPost = asyncHandler(async (req, res) => {
+	const { id } = req.user
+	validateMongodbId(id)
 	try {
-		const newPost = await Post.create(req.body)
+		const author = await User.findById(id)
+		const {
+			title,
+			summary,
+			content,
+			tags,
+			category
+		} = req.body
+		const newPost = await Post.create({
+			title,
+			summary,
+			content,
+			tags,
+			category,
+			author
+		})
 		res.json(newPost)
+	}
+	catch (error) {
+		throw new Error (error)
+	}
+})
+
+const uploadImages = asyncHandler(async (req, res) => {
+	const { id } = req.params
+	const { _id } = req.user
+	validateMongodbId(id)
+	validateMongodbId(_id)
+
+	try {
+		const user = await User.findById(_id)
+		const post = await Post.findById(id)
+		const originalCoverUrl = 'https://res.cloudinary.com/dwvsytxrl/image/upload/v1698884305/szyfxegqu6rvnb4nur4e.jpg'
+		const isThisAuthor = post.author._id.toString() === user._id.toString()
+		if(!isThisAuthor) throw new Error ("You are not the author of this paper")
+
+		const isCoverChanged = post.cover.url !== originalCoverUrl
+		const uploader = (path) => cloudinaryUploadImg(path, 'image')
+		const destroyer = (path) => cloudinaryDeleteImg(path, 'image')
+		const { path } = req.file
+		const newPath = await uploader(path)
+		fs.unlinkSync(path)
+		if(!isCoverChanged) {
+			const findPost = await Post.findByIdAndUpdate(id, {
+				cover: newPath
+			})
+			res.json(findPost)
+		} else {
+			const findPost = await Post.findById(id)
+			const oldImgUrl = findPost.cover.public_id
+			destroyer(oldImgUrl)
+			const updateCover = await Post.findByIdAndUpdate(id, {
+				cover: newPath
+			}, { new: true })
+			res.json(updateCover)
+		}
 	}
 	catch (error) {
 		throw new Error (error)
@@ -22,6 +81,7 @@ const getaPost = asyncHandler(async (req, res) => {
 		{ new: true })
 		.populate("likes")
 		.populate("dislikes")
+		.populate("author")
 		res.json(post)
 	}
 	catch (error) {
@@ -94,6 +154,7 @@ module.exports = {
 	getaPost,
 	getAllPosts,
 	updatePost,
+	uploadImages
 }
 
-/* Like and Dislike Controller in respondCtrl.js */
+ // Like and Dislike Controller in respondCtrl.js 
