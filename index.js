@@ -18,6 +18,11 @@ app.use(bodyParser.urlencoded({ extended: false }))
 app.use(cookieParser())
 app.use('/api/user', authRouter)
 app.use('/api/post', postRouter)
+app.get('/', (req, res) => {
+	res.json({
+		message: '﷽',
+	});
+});
 app.use(notFound)
 app.use(errorHandler)
 
