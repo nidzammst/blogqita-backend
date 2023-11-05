@@ -4,7 +4,7 @@ const dotenv = require('dotenv').config()
 const bodyParser = require('body-parser')
 const cookieParser = require('cookie-parser')
 const morgan = require('morgan')
-const PORT = process.env.PORT || 4000
+const port = process.env.PORT || 4000
 
 const authRouter = require('./routes/authRoute')
 const postRouter = require('./routes/postRoute')
@@ -26,6 +26,6 @@ app.get('/', (req, res) => {
 app.use(notFound)
 app.use(errorHandler)
 
-app.listen(PORT, () => {
-	console.log(`Server Running at port ${PORT}`)
+app.listen(port, () => {
+	console.log(`Server Running at port ${port}`)
 })
