@@ -16,7 +16,8 @@ const {
 	forgotPasswordToken,
 	resetPassword,
 	addAuthor,
-	followUnfollow
+	followUnfollow,
+	savePosts
 } = require('../controller/authCtrl')
 const { authMiddleware, isAdmin } = require('../middlewares/authMiddleware')
 const { uploadPhoto, profileImgResize } = require('../middlewares/uploadImages')
@@ -32,6 +33,7 @@ router.put('/add-author/:id', authMiddleware, isAdmin, addAuthor)
 router.put('/password', authMiddleware, updatePassword)
 router.put('/reset-password/:token', resetPassword)
 router.put('/fol-unfol/:id', authMiddleware, followUnfollow)
+router.put('/save-post/:id', authMiddleware, savePosts)
 router.post('/register', createUser)
 router.post('/login', loginUser)
 router.post('/forgot-password-token', forgotPasswordToken)

@@ -20,7 +20,8 @@ const likePost = asyncHandler(async (req, res) => {
 		if(alreadyDisliked) {
 			const post = await Post.findByIdAndUpdate(id, {
 				$push: { likes: _id },
-				$pull: { dislikes: _id }
+				$pull: { dislikes: _id },
+				$inc: { quality: 1 }
 			}, {
 				new: true
 			})
@@ -29,7 +30,8 @@ const likePost = asyncHandler(async (req, res) => {
 		// Cancel Like
 		if(alreadyLiked) {
 			const post = await Post.findByIdAndUpdate(id, {
-				$pull: { likes: _id }
+				$pull: { likes: _id },
+				$inc: { quality: -1 }
 			}, {
 				new: true
 			})
@@ -38,7 +40,8 @@ const likePost = asyncHandler(async (req, res) => {
 		// add _id to likes array
 		else {
 			const post = await Post.findByIdAndUpdate(id, {
-				$push: { likes: _id }
+				$push: { likes: _id },
+				$inc: { quality: 1 }
 			}, {
 				new: true
 			})
@@ -68,7 +71,8 @@ const dislikePost = asyncHandler(async (req, res) => {
 		if(alreadyLiked) {
 			const post = await Post.findByIdAndUpdate(id, {
 				$pull: { likes: _id },
-				$push: { dislikes: _id }
+				$push: { dislikes: _id },
+				$inc: { quality: -.5 }
 			}, {
 				new: true
 			})
@@ -77,7 +81,8 @@ const dislikePost = asyncHandler(async (req, res) => {
 		// Cancel Dislike
 		if(alreadyDisliked) {
 			const post = await Post.findByIdAndUpdate(id, {
-				$pull: { dislikes: _id }
+				$pull: { dislikes: _id },
+				$inc: { quality: -.5 }
 			}, {
 				new: true
 			})
@@ -86,7 +91,8 @@ const dislikePost = asyncHandler(async (req, res) => {
 		// add _id to likes array
 		else {
 			const post = await Post.findByIdAndUpdate(id, {
-				$push: { dislikes: _id }
+				$push: { dislikes: _id },
+				$inc: { quality: -.5}
 			}, {
 				new: true
 			})
@@ -115,6 +121,9 @@ const commentPost = asyncHandler(async (req, res) => {
 		const post = await Post.findByIdAndUpdate(id, {
 			$push: {
 				respond: comment._id
+			},
+			$inc: {
+				quality: 1
 			}
 		}).populate("respond")
 		res.json(post)
@@ -129,14 +138,18 @@ const replyComment = asyncHandler(async (req, res) => {
 	const { id } = req.params
 	validateMongodbId(_id)
 	validateMongodbId(id)
-	const { commentText } = req.body
+	const { commentText, parentId } = req.body
 	try {
 		const comment = await Respond.create({
 			postId: id,
 			commenter: _id,
 			commentText
 		})
-		const parentComment = await Respond.findByIdAndUpdate(id, {
+		await Post.findByIdAndUpdate(id, {
+			$push: { respond: comment },
+			$inc: { quality: 1 }
+		}, { new: true })
+		const parentComment = await Respond.findByIdAndUpdate(parentId, {
 			$push: {
 				reply: comment._id
 			}
@@ -185,7 +198,6 @@ const updateComment = asyncHandler(async (req, res) => {
 			const updatedComment = await Respond.findByIdAndUpdate(id, {
 				commentText: commentText
 			}, { new: true })
-			console.log("OK")
 			res.json(updatedComment)
 		}
 	}

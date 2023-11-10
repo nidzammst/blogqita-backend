@@ -1,4 +1,5 @@
 const User = require('../models/userModel')
+const Post = require('../models/postModel')
 const asyncHandler = require('express-async-handler')
 const jwt = require('jsonwebtoken')
 const crypto = require('crypto')
@@ -289,6 +290,34 @@ const followUnfollow = asyncHandler(async (req, res) => {
 	}
 })
 
+const savePosts = asyncHandler(async (req, res) => {
+	const { id } = req.params
+	const { _id } = req.user
+	validateMongodbId(id)
+	validateMongodbId(_id)
+
+	try {
+		const post = await Post.findById(id)
+		const saver = await User.findById(_id)
+		const isPostSaved = saver?.savedPosts.find((postId) => postId._id.toString() === id.toString())
+		console.log(isPostSaved)
+		if(!isPostSaved) {
+			const addPostToSavedPosts = await User.findByIdAndUpdate(_id, {
+				$push: { savedPosts: post._id }
+			}, { new: true })
+			res.json(addPostToSavedPosts)
+		} else {
+			const removePostToSavedPosts = await User.findByIdAndUpdate(_id, {
+				$pull: { savedPosts: post._id }
+			}, { new: true })
+			res.json(removePostToSavedPosts)
+		}
+	}
+	catch (error) {
+		throw new Error (error)
+	}
+})
+
 module.exports = {
 	createUser,
 	loginUser,
@@ -305,5 +334,6 @@ module.exports = {
 	forgotPasswordToken,
 	resetPassword,
 	addAuthor,
-	followUnfollow
+	followUnfollow,
+	savePosts
 }

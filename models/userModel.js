@@ -70,17 +70,32 @@ var userSchema = new mongoose.Schema({
 	},
 	following: [
 		{
-			type: mongoose.Schema.ObjectId, ref: 'User'
+			type: mongoose.Schema.ObjectId,
+			ref: 'User'
 		}
 	],
 	followers: [
 		{
-			type: mongoose.Schema.ObjectId, ref: 'User'
+			type: mongoose.Schema.ObjectId,
+			ref: 'User'
 		}
 	],
 	posts: [
 		{
-			type: mongoose.Schema.ObjectId, ref: 'Post'
+			type: mongoose.Schema.ObjectId,
+			ref: 'Post'
+		}
+	],
+	savedPosts: [
+		{
+			type: mongoose.Schema.ObjectId,
+			ref: 'Post'
+		}
+	],
+	tagsFollow: [
+		{
+			type: mongoose.Schema.ObjectId,
+			ref: 'Tags'
 		}
 	],
 	refreshToken: {

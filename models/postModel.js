@@ -26,12 +26,17 @@ var postSchema = new mongoose.Schema({
 		type: Number,
 		default: 0
 	},
-	tags: [String],
+	tags: [
+		{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Tag'
+		}
+	],
 	category: [
-	{
-		type: String,
-		enum: ["Travel", "Islam", "Film", "Music"]
-	}
+		{
+			type: mongoose.Schema.Types.ObjectId,
+			ref: 'Category'
+		}
 	],
 	author: {
 		type: mongoose.Schema.Types.ObjectId,
@@ -49,6 +54,14 @@ var postSchema = new mongoose.Schema({
 			ref: 'User'
 		}
 	],
+	sec: {
+		type: Number,
+		default: 1
+	},
+	quality: {
+		type: Number,
+		default: 0
+	},
 	respond: [
 		{
 			type: mongoose.Schema.Types.ObjectId,
@@ -56,5 +69,11 @@ var postSchema = new mongoose.Schema({
 		}
 	]
 }, { timestamps: true })
+
+postSchema.pre('save', async function(next) {
+	const Post = this.constructor
+	const [post] = await Post.find().sort({sec: -1}).limit(1)
+	this.sec = post?.sec + 1
+})
 
 module.exports = mongoose.model("Post", postSchema)

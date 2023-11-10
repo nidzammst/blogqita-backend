@@ -1,5 +1,7 @@
 const Post = require('../models/postModel')
 const User = require('../models/userModel')
+const Category = require('../models/categoryModel')
+const Tags = require('../models/tagsModel')
 const fs = require('fs')
 const asyncHandler = require('express-async-handler')
 const validateMongodbId = require('../utils/validateMongodbId')
@@ -17,14 +19,31 @@ const createPost = asyncHandler(async (req, res) => {
 			tags,
 			category
 		} = req.body
+
 		const newPost = await Post.create({
 			title,
 			summary,
 			content,
-			tags,
-			category,
 			author
 		})
+
+		/* add tags post */
+		await Promise.all(
+			tags.map(async (someTag) => {
+			let newTag = await Tags.findOneAndUpdate({ title: someTag }, {
+				$push: { posts: newPost }
+			}, { new: true })
+			await newPost.updateOne({ $push: { tags: newTag } })
+		}))
+
+		/* add category post*/
+		await Promise.all(
+			category.map(async (someCategory) => {
+			let newCategory = await Category.findOneAndUpdate({ title: someCategory }, {
+				$push: { posts: newPost }
+			}, { new: true })
+			await newPost.updateOne({ $push: { category: newCategory } })
+		}))
 		res.json(newPost)
 	}
 	catch (error) {
@@ -76,11 +95,13 @@ const getaPost = asyncHandler(async (req, res) => {
 	validateMongodbId(id)
 	try{
 		const post = await Post.findByIdAndUpdate(id, {
-			$inc: { viewsCount: 1 },
+			$inc: {
+				viewsCount: 1,
+				quality: .25
+			},
 		},
 		{ new: true })
 		.populate("likes")
-		.populate("dislikes")
 		.populate("author")
 		res.json(post)
 	}
@@ -149,12 +170,34 @@ const updatePost = asyncHandler(async (req, res) => {
 	}
 })
 
+const deletePost = asyncHandler(async (req, res) => {
+	const { id } = req.params
+	const { _id } = req.user
+	validateMongodbId(id)
+	validateMongodbId(_id)
+	try {
+		const post = await Post.findById(id)
+		const isThisAuthor = _id.toString() === post.author._id.toString()
+		if(!isThisAuthor) throw new Error ("You are not the author of this paper")
+		/* Regenerate Sequence */
+		const posts = await Post.updateMany({ sec: { $gt: post.sec } }, {
+			$inc: { sec: -1 }
+		})
+		const deletedPost = await Post.findByIdAndDelete(id)
+		res.json(deletedPost)
+	}
+	catch (error) {
+		throw new Error(error)
+	}
+})
+
 module.exports = {
 	createPost,
 	getaPost,
 	getAllPosts,
 	updatePost,
-	uploadImages
+	deletePost,
+	uploadImages,
 }
 
  // Like and Dislike Controller in respondCtrl.js 
